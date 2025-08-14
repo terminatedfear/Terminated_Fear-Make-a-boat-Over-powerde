@@ -1,0 +1,125 @@
+-- Terminated_Fear Styled Teleport GUI for Make a Boat!
+-- Supports up to 100 Quadrillion meters + Auto Farm
+-- Works after respawn
+
+local player = game.Players.LocalPlayer
+local hrp
+
+-- Function to update HRP when you respawn
+local function updateCharacter()
+    local char = player.Character or player.CharacterAdded:Wait()
+    hrp = char:WaitForChild("HumanoidRootPart")
+end
+
+-- Run at start & on respawn
+player.CharacterAdded:Connect(updateCharacter)
+updateCharacter()
+
+-- Create GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "Terminated_Fear_TP"
+gui.Parent = game.CoreGui
+
+-- Main Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 190) -- taller for extra button
+frame.Position = UDim2.new(0.5, -150, 0.5, -95)
+frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+-- Smooth corners
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = frame
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 30)
+title.BackgroundTransparency = 1
+title.Text = "Terminated_Fear Teleport"
+title.TextColor3 = Color3.fromRGB(0, 255, 170)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.Parent = frame
+
+-- TextBox for meters
+local textbox = Instance.new("TextBox")
+textbox.Size = UDim2.new(0, 260, 0, 40)
+textbox.Position = UDim2.new(0, 20, 0, 50)
+textbox.PlaceholderText = "Enter meters (max 100 Quadrillion)"
+textbox.Text = ""
+textbox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+textbox.TextColor3 = Color3.fromRGB(255, 255, 255)
+textbox.Font = Enum.Font.Gotham
+textbox.TextSize = 16
+textbox.ClearTextOnFocus = false
+textbox.Parent = frame
+
+local tbCorner = Instance.new("UICorner")
+tbCorner.CornerRadius = UDim.new(0, 8)
+tbCorner.Parent = textbox
+
+-- Teleport Button
+local tpButton = Instance.new("TextButton")
+tpButton.Size = UDim2.new(0, 260, 0, 40)
+tpButton.Position = UDim2.new(0, 20, 0, 100)
+tpButton.Text = "Teleport"
+tpButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+tpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+tpButton.Font = Enum.Font.GothamBold
+tpButton.TextSize = 18
+tpButton.Parent = frame
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0, 8)
+btnCorner.Parent = tpButton
+
+-- Auto Farm Button
+local autoFarmBtn = Instance.new("TextButton")
+autoFarmBtn.Size = UDim2.new(0, 260, 0, 40)
+autoFarmBtn.Position = UDim2.new(0, 20, 0, 145)
+autoFarmBtn.Text = "Auto Farm 100k"
+autoFarmBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+autoFarmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+autoFarmBtn.Font = Enum.Font.GothamBold
+autoFarmBtn.TextSize = 18
+autoFarmBtn.Parent = frame
+
+local afCorner = Instance.new("UICorner")
+afCorner.CornerRadius = UDim.new(0, 8)
+afCorner.Parent = autoFarmBtn
+
+-- Teleport logic
+tpButton.MouseButton1Click:Connect(function()
+    local meters = tonumber(textbox.Text)
+    local maxMeters = 100000000000000000 -- 100 Quadrillion
+    if meters and meters > 0 then
+        if meters > maxMeters then
+            meters = maxMeters
+        end
+        hrp.CFrame = CFrame.new(0, 10, -meters)
+    else
+        textbox.Text = "Invalid number!"
+    end
+end)
+
+-- Auto farm logic (100k -> return -> claim reward)
+autoFarmBtn.MouseButton1Click:Connect(function()
+    spawn(function()
+        -- go to 100k
+        hrp.CFrame = CFrame.new(0, 10, -100000)
+        wait(2)
+        -- return to spawn
+        hrp.CFrame = CFrame.new(0, 10, 0)
+        wait(1)
+        -- try to claim reward (fires any RemoteEvent with 'claim' in name)
+        for _,v in pairs(game:GetService("ReplicatedStorage"):GetDescendants()) do
+            if v:IsA("RemoteEvent") and v.Name:lower():find("claim") then
+                v:FireServer()
+            end
+        end
+    end)
+end)
